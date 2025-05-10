@@ -1,0 +1,88 @@
+import string
+from collections import Counter
+import matplotlib.pyplot as plt
+
+# Define stop words
+stop_words = set([
+    "i", "me", "my", "myself", "we", "our", "ours", "ourselves", "you", "your",
+    "yours", "yourself", "yourselves", "he", "him", "his", "himself", "she",
+    "her", "hers", "herself", "it", "its", "itself", "they", "them", "their",
+    "theirs", "themselves", "what", "which", "who", "whom", "this", "that",
+    "these", "those", "am", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "having", "do", "does", "did", "doing", "a", "an",
+    "the", "and", "but", "if", "or", "because", "as", "until", "while", "of",
+    "at", "by", "for", "with", "about", "against", "between", "into", "through",
+    "during", "before", "after", "above", "below", "to", "from", "up", "down",
+    "in", "out", "on", "off", "over", "under", "again", "further", "then",
+    "once", "here", "there", "when", "where", "why", "how", "all", "any",
+    "both", "each", "few", "more", "most", "other", "some", "such", "no",
+    "nor", "not", "only", "own", "same", "so", "than", "too", "very", "s",
+    "t", "can", "will", "just", "don", "should", "now"
+])
+file_path='D:\emotion_project'
+
+def load_text(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} was not found.")
+        return ""
+
+def preprocess_text(text):
+    # Convert to lowercase
+    text = text.lower()
+    # Remove punctuation
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    # Tokenize
+    words = text.split()
+    # Remove stop words
+    final_words = [word for word in words if word not in stop_words]
+    return final_words
+
+def load_emotions(file_path):
+    emotion_dict = {}
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                clean_line = line.strip().replace("'", "").replace(",", "")
+                if ':' in clean_line:
+                    word, emotion = clean_line.split(':')
+                    emotion_dict[word.strip()] = emotion.strip()
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} was not found.")
+    return emotion_dict
+
+def map_emotions(words, emotion_dict):
+    emotions = []
+    for word in words:
+        emotion = emotion_dict.get(word)
+        if emotion:
+            emotions.append(emotion)
+    return emotions
+
+def visualize_emotions(emotions):
+    emotion_counts = Counter(emotions)
+    if emotion_counts:
+        fig, ax = plt.subplots()
+        ax.bar(emotion_counts.keys(), emotion_counts.values())
+        fig.autofmt_xdate()
+        plt.title('Emotion Frequency')
+        plt.xlabel('Emotions')
+        plt.ylabel('Counts')
+        plt.savefig('graph.png')
+        plt.show()
+    else:
+        print("No emotions to display.")
+
+def main():
+    text = load_text('read.txt')
+    if text:
+        final_words = preprocess_text(text)
+        emotion_dict = load_emotions('emotions.txt')
+        emotions = map_emotions(final_words, emotion_dict)
+        visualize_emotions(emotions)
+
+if __name__ == "__main__":
+    main()
+
